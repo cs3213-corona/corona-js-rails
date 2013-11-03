@@ -122,10 +122,10 @@ Cjs._RouterEx.register = function(hash, func, obj) {
 
 /**
  * Starts the router. This will register for the hash-change
- * event and kickoff with an initial hash change check. The
- * subscriber is always fired before the trigger.
+ * event and kickoff with an initial hash change check.
  * Triggers:
- * - route: hash, params, args
+ * - routeBefore: hash, params, args
+ * - routeAfter: hash, params, args
  */
 Cjs._RouterEx.start = function() {
   if(!this._routes) {
@@ -142,7 +142,7 @@ Cjs._RouterEx.start = function() {
 };
 
 /**
- * Changes the hashbang url.
+ * Changes the hashbang URL.
  */
 Cjs._RouterEx.navigate = function(hash) {
   window.location.hash = '#' + hash;
@@ -150,10 +150,10 @@ Cjs._RouterEx.navigate = function(hash) {
 
 /**
  * Internal hash change event handler. Detects the hash
- * change and fires the appropriate subscriber. The
- * subscriber is always fired before the trigger.
+ * change and fires the appropriate subscriber.
  * Triggers:
- * - route: hash, params, args
+ * - routeBefore: hash, params, args
+ * - routeAfter: hash, params, args
  */
 Cjs._RouterEx._hashChange = function() {
   var hash = window.location.href.match('#(.*)$');
@@ -166,8 +166,9 @@ Cjs._RouterEx._hashChange = function() {
     // Default route
     if(route.hash === '') {
       if(hash === '') {
-        route.func(route.hash);
-        this.trigger('route', route.hash);
+        this.trigger('routeBefore', route.hash, {});
+        Cjs._call(route.func, [route.hash, {}]);
+        this.trigger('routeAfter', route.hash, {});
         done = true;
         break;
       }
@@ -178,18 +179,19 @@ Cjs._RouterEx._hashChange = function() {
     var match = hash.match(route.regex);
     if(!_.isNull(match)) {
       var params = {};
-      var args = [];
+      var args = [route.hash, params];
 
       // Convert hashtags into parameters and arguments
       for(var i=0; i<route.args.length; ++i) {
         var arg = route.args[i];
         params[arg.tkn] = match[arg.index];
-        args[i] = match[arg.index];
+        args.push(match[arg.index]);
       }
 
       // Perform callback
-      route.func(route.hash, params, args);
-      this.trigger('route', route.hash, params, args);
+      this.triggerEx('routeBefore', args);
+      Cjs._call(route.func, args);
+      this.triggerEx('routeAfter', args);
       done = true;
       break;
     }

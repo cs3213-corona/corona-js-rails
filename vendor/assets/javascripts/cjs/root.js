@@ -48,3 +48,14 @@ Cjs._extend = function(type) {
  * arguments and "pop" them off the front of the array.
  */
 Cjs._shift = [].shift;
+
+/**
+ * Calls the function and apply an array object as
+ * its Arguments object preserving this context.
+ */
+Cjs._call = function(func, args) {
+  var call = function() {
+    return func.apply(this, args);
+  };
+  call();
+};

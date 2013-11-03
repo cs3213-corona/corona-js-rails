@@ -30,10 +30,23 @@ Cjs._Controller.init = function(args) {
 };
 
 /**
- * Triggered on every route event that disables the
- * "previousView" and enables the "currentView".
+ * Triggered on every route event that does the following:
+ * - previousView = currentView
+ * - currentView = nextView
+ * - nextView = undefined
+ * - Disables previousView
+ * - Enables currentView
+ *
+ * This has no effect when the currentView is the nextView.
  */
 Cjs._Controller._route = function(hash, params, args) {
+  if(this.currentView == this.nextView)
+    return;
+
+  this.previousView = this.currentView;
+  this.currentView = this.nextView;
+  this.nextView = undefined;
+
   if(!_.isUndefined(this.previousView))
     this.previousView.setEnabled(false);
   if(!_.isUndefined(this.currentView))
@@ -56,9 +69,10 @@ Cjs.Controller = function(properties) {
   // Default values for mounted views
   this.previousView = undefined;
   this.currentView = undefined;
+  this.nextView = undefined;
 
   // Subscribe to route events
-  this.router.subscribe('route', '_route', this);
+  this.router.subscribe('routeAfter', '_route', this);
 
   // Register routes
   var that = this;

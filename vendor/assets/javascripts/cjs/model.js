@@ -23,7 +23,7 @@ Cjs._Model.init = function() {
  * Triggers:
  * - fetchSuccess: model
  * - fetchFailure: model, textStatus, errorThrown
- * @param url The url address to fetch the model data at.
+ * @param url The URL address to fetch the model data at.
  */
 Cjs._Model.fetch = function(url) {
   if(!_.isString(url)) {
@@ -61,7 +61,7 @@ Cjs._Model.fetch = function(url) {
  * Triggers:
  * - createSuccess: model
  * - createFailure: model, textStatus, errorThrown
- * @param url The url address to create the model data at.
+ * @param url The URL address to create the model data at.
  * @param json JSON data. If none specified, uses the model by default.
  */
 Cjs._Model.create = function(url, json) {
@@ -82,7 +82,9 @@ Cjs._Model.create = function(url, json) {
     url: url,
     type: 'POST',
     dataType: 'json',
-    data: json,
+    contentType: 'application/json',
+    data: JSON.stringify(json),
+    processData: false,
     async: true
   });
 
@@ -102,7 +104,7 @@ Cjs._Model.create = function(url, json) {
  * Triggers:
  * - updateSuccess: model
  * - updateFailure: model, textStatus, errorThrown
- * @param url The url address to create the model data at.
+ * @param url The URL address to create the model data at.
  * @param json JSON data. If none specified, uses the model by default.
  */
 Cjs._Model.update = function(url, json) {
@@ -123,7 +125,9 @@ Cjs._Model.update = function(url, json) {
     url: url,
     type: 'PUT',
     dataType: 'json',
-    data: json,
+    contentType: 'application/json',
+    data: JSON.stringify(json),
+    processData: false,
     async: true
   });
 
@@ -143,9 +147,10 @@ Cjs._Model.update = function(url, json) {
  * Triggers:
  * - destroySuccess: model
  * - destroyFailure: model, textStatus, errorThrown
- * @param url The url address to destroy the model data at.
+ * @param url The URL address to destroy the model data at.
+ * @param json JSON data. Not used if not specified.
  */
-Cjs._Model.destroy = function(url) {
+Cjs._Model.destroy = function(url, json) {
   if(!_.isString(url)) {
     Cjs._log('Cjs.Model', 'Invalid parameter - url, string expected.');
     return;
@@ -159,6 +164,9 @@ Cjs._Model.destroy = function(url) {
     url: url,
     type: 'DELETE',
     dataType: 'json',
+    contentType: 'application/json',
+    data: JSON.stringify(json),
+    processData: false,
     async: true
   });
 
@@ -230,10 +238,10 @@ Cjs._Model.stringify = function() {
 
 /**
  * Public constructor.
- * @param properties Extended properties for this instance.
  * @param attributes Adds to attributes. Equivalent to calling set(attributes) after construction.
+ * @param properties Extended properties for this instance.
  */
-Cjs.Model = function(properties, attributes) {
+Cjs.Model = function(attributes, properties) {
   // Extended properties
   if(!_.isUndefined(properties)) {
     var that = this;

@@ -8,12 +8,16 @@ Cjs._View = function() {};
 
 /**
  * HTML element identifier. jQuery is used to formulate a
- * $element based on this at object construction.
+ * $element based on this at object construction. If at object
+ * construction $element does not exist, the element is
+ * assumed to be uncachable and thus, the default render
+ * method will automatically retrieve the $element at
+ * each render.
  */
 Cjs._View.element = undefined;
 
 /**
- * HTML template url using Underscore.js templating system.
+ * HTML template URL using Underscore.js templating system.
  * This will be used to create $template upon object construction.
  * $template is the template string that can be used with
  * Underscore.js or with the build() function.
@@ -81,8 +85,13 @@ Cjs._View.build = function(json) {
 }
 
 /**
- * Standard render method that should be called upon render.
+ * Standard render method that should be called upon enabled.
  * This functionality can be overridden.
+ *
+ * Do note that, the render() method is NOT registered as a
+ * trigger when the view is enabled, or model is fetched. YOU
+ * HAVE TO DO IT YOURSELF! These 'linking' triggers should be
+ * handled by a Controller.
  */
 Cjs._View.render = function() {
   this._render();
@@ -99,9 +108,21 @@ Cjs._View._render = function() {
   if(!this.isEnabled())
     return;
 
+  // Ensure element is defined
   if(_.isUndefined(this.element)) {
     Cjs._log('Cjs.View', 'Undefined element found.');
     return;
+  }
+
+  // Retrieve the uncached object if necessary
+  if(this._uncached) {
+    this.$element = $(this.element);
+
+    // Ensure jQuery object exists
+    if(this.$element.length === 0) {
+      Cjs._log('Cjs.View', 'Undefined element found.');
+      return;
+    }
   }
 
   Cjs._log('Cjs.View', 'Default render used.');
@@ -283,10 +304,12 @@ Cjs.View = function(properties) {
 
   this._isEnabled = false;
   this._isRegisteredDomEvents = false;
+  this._uncached = true;
 
   if(this.element) {
     // Create jQuery reference
     this.$element = $(this.element);
+    this._uncached = (this.$element.length === 0);
   }
   else {
     Cjs._log('Cjs.View', 'Undefined element found.');
@@ -309,7 +332,7 @@ Cjs.View = function(properties) {
 
     // catch
     request.fail(function(jqXHR, status, error) {
-      Cjs._log('Cjs.View', 'Cannot retrieve template url "' + that.template + '".');
+      Cjs._log('Cjs.View', 'Cannot retrieve template URL "' + that.template + '".');
       that.$template = '';
     });
   }

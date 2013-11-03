@@ -20,7 +20,22 @@ Cjs._CompositeView.init = function(args) {
 };
 
 /**
- * Adds a view to the composite.
+ * Retrieves the view with the specified name.
+ * @return The specified view.
+ */
+Cjs._CompositeView.get = function(name) {
+  if(!_.isString(name)) {
+    Cjs._log('Cjs.CompositeView', 'Invalid parameter - name, string expected.');
+    return undefined;
+  }
+
+  // Retrieve key-value pair
+  return this._views[name];
+};
+
+/**
+ * Adds a view to the composite. If this composite view is
+ * enabled, enables the added view.
  * Triggers:
  * - added: composite, name, view
  * @param name Name of added view
@@ -42,10 +57,16 @@ Cjs._CompositeView.add = function(name, view) {
 
   // Fire added event
   this.trigger('added', this, name, view);
+
+  // Enable if necessary
+  if(this.isEnabled()) {
+    view.setEnabled(true);
+  }
 };
 
 /**
- * Removes a view from the composite.
+ * Removes a view from the composite. If this composite view is
+ * enabled, disables the old view.
  * Triggers:
  * - removed: composite, name, view
  * @param name Name of view to remove from the composite
@@ -68,11 +89,17 @@ Cjs._CompositeView.remove = function(name) {
 
   // Fire removed event
   this.trigger('removed', this, name, view);
+
+  // Disable if necessary
+  if(this.isEnabled()) {
+    view.setEnabled(false);
+  }
   return view;
 };
 
 /**
- * Swaps a view in the composite.
+ * Swaps a view in the composite. If this composite view is
+ * enabled, disables the old view and enables the swapped view.
  * Triggers:
  * - removed: composite, name, view
  * - added: composite, name, view
@@ -193,7 +220,7 @@ Cjs._CompositeView.setEnabled = function(enabled) {
  */
 Cjs._CompositeView._registerDomEvents = function() {
   this.each(function(view) {
-    view.registerDomEvents();
+    view._registerDomEvents();
   });
 };
 
@@ -202,7 +229,7 @@ Cjs._CompositeView._registerDomEvents = function() {
  */
 Cjs._CompositeView._unregisterDomEvents = function() {
   this.each(function(view) {
-    view.unregisterDomEvents();
+    view._unregisterDomEvents();
   });
 };
 

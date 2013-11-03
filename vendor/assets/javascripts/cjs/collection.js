@@ -27,7 +27,7 @@ Cjs._Collection.init = function(args) {
  * - added: collection, model
  * - fetchSuccess: collection
  * - fetchFailure: collection, textStatus, errorThrown
- * @param url The url address to fetch the model data from.
+ * @param url The URL address to fetch the model data from.
  */
 Cjs._Collection.fetch = function(url) {
   if(!_.isString(url)) {
@@ -37,6 +37,7 @@ Cjs._Collection.fetch = function(url) {
 
   Cjs._log('Cjs.Collection', 'Fetching from "' + url + '".');
 
+  // GET request
   var that = this;
   var request = $.ajax({
     url: url,
@@ -66,6 +67,14 @@ Cjs._Collection.fetch = function(url) {
 };
 
 /**
+ * Retrieves the model at the specified index.
+ * @return The specified model
+ */
+Cjs._Collection.at = function(index) {
+  return this.models[index];
+};
+
+/**
  * Adds a model to the collection.
  * Triggers:
  * - added: collection, model
@@ -73,6 +82,7 @@ Cjs._Collection.fetch = function(url) {
  */
 Cjs._Collection.add = function(model) {
   this.models.push(model);
+  this.length = this.models.length;
   this.trigger('added', this, model);
 };
 
@@ -97,19 +107,39 @@ Cjs._Collection.addAll = function(models) {
 
 /**
  * Removes a model from the collection. This function will match all
- * models that is equal in the collection and remove them.
+ * attributes that is equal to the models in the collection and remove them.
  * Triggers:
  * - removed: collection, model
- * @param model Model to remove from the collection
+ * @param attributes Models with matching attributes to remove
  */
-Cjs._Collection.remove = function(model) {
-  // Find and remove all instances of the model
+Cjs._Collection.remove = function(attributes) {
+  if(!_.isObject(attributes)) {
+    Cjs._log('Cjs.Collection', 'Invalid parameter - attributes, object expected.');
+    return;
+  }
+
+  // Iterate through to find each model to remove
   for(var i=0; i<this.models.length; ++i) {
-    if(this.models[i] == model) {
+    var model = this.models[i];
+    var del = true;
+
+    // Make sure all attributes match in model
+    for(var key in attributes) {
+      if(attributes[key] != model.attributes[key]) {
+        del = false;
+        break;
+      }
+    }
+
+    // Remove model
+    if(del) {
       this.models.splice(i--, 1);
       this.trigger('removed', this, model);
     }
   }
+  
+  // Update length
+  this.length = this.models.length;
 };
 
 /**
@@ -134,6 +164,7 @@ Cjs._Collection.each = function(func) {
  */
 Cjs._Collection.reset = function() {
   this.models = [];
+  this.length = 0;
   this.trigger('reset', this);
 };
 
@@ -160,10 +191,10 @@ Cjs._Collection.stringify = function() {
 
 /**
  * Public constructor.
- * @param properties Extended properties for this instance.
  * @param models Adds to models. Equivalent to calling addAll(models) after construction.
+ * @param properties Extended properties for this instance.
  */
-Cjs.Collection = function(properties, models) {
+Cjs.Collection = function(models, properties) {
   // Extended properties
   if(!_.isUndefined(properties)) {
     var that = this;

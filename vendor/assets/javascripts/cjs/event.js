@@ -10,11 +10,31 @@ Cjs._Event = function() {};
  * Triggers an event with a specific name and
  * passes its arguments to all subscribers.
  * @param name Event name.
- * @param args Event arguments.
  */
-Cjs._Event.trigger = function(name, args) {
+Cjs._Event.trigger = function(name) {
+  // Keep copy because shift will modify it
+  var eventName = name;
+
+  // Ignore first argument
+  Cjs._shift.apply(arguments);
+  this.triggerEx(eventName, arguments);
+};
+
+/**
+ * Triggers an event with a specific name and uses its
+ * argument array as an Arguments object to pass to all
+ * subscribers.
+ * @param name Event name.
+ * @param args Event args array.
+ */
+Cjs._Event.triggerEx = function(name, args) {
   if(!_.isString(name)) {
     Cjs._log('Cjs.Event', 'Invalid parameter - name, string expected.');
+    return;
+  }
+
+  if(!_.isArray(args) && !_.isArguments(args)) {
+    Cjs._log('Cjs.Event', 'Invalid parameter - args, array expected.');
     return;
   }
 
@@ -24,12 +44,13 @@ Cjs._Event.trigger = function(name, args) {
   if(!this._events[name])
     return;
 
+  // Retrieve event to trigger
   Cjs._log('Cjs.Event', 'Triggered an event "' + name + '".');
+  var event = this._events[name];
 
   // Trigger all subscribers
-  var event = this._events[name];
   for(var i=0; i<event.length; ++i) {
-    event[i].func(args);
+    Cjs._call(event[i].func, args);
   }
 };
 
